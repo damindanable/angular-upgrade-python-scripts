@@ -195,7 +195,7 @@ def search_and_replace_in_files(file_path, search_word, replace_word):
     print_colored(f"SEARCH AND REPLACE IN FILES STAGE :: File {file_path}, replacement of {search_word}, to {replace_word} updated successfully.", color="green")
 
 
-def change_lib_package_json_package_data():
+def change_lib_package_json_package_data() -> None:
     file_path = "projects"
     if file_path:
       print_colored("PROJECTS FOLDER FOUND :: working on it.....", color="blue")
@@ -203,19 +203,12 @@ def change_lib_package_json_package_data():
         for f in files:
           if f == "package.json":
             file_path_url = os.path.join(path, f)
-            print_colored(f"---------------- {file_path_url}", color="yellow")
-            with open(file_path_url, 'r') as file:
-              file_contents = file.read()
-              # updated_contents = file_contents.replace(search_word, replace_word)
-              print_colored(f"---------FOUND PACKAGE JSON------- {file_contents}", color="red")
-          # if f.endswith(".json"):
-          #     file_path_url = os.path.join(path, f)
-          #     with open(file_path_url, 'r') as file:
-          #       file_contents = file.read()
-          #       updated_contents = file_contents.replace(search_word, replace_word)
+            for line in fileinput.input(file_path_url):
+              line = line.rstrip()
+              for key, value in fields.items():
+                if key in line:
+                  get_line_numbers(file_path_url, key, value)
 
-          #     with open(file_path_url, 'w') as file:
-          #         file.write(updated_contents)
     else:
       print_colored("NO PROJECTS FOLDER FOUND EXISTING", color="blue")
 
@@ -266,22 +259,22 @@ def update_angular_package_json() -> None:
         line = line.rstrip()
         for key, value in fields.items():
           if key in line:
-            get_line_numbers(key, value)
+            get_line_numbers(package_json_file_name, key, value)
       print_colored("ANGULAR JSON WAS UPDATED", color="green")
 
     except FileNotFoundError: print_colored("ANGULAR JSON WAS NOT UPDATED", color="red")
 
-def get_line_numbers(key: str, value: str) -> None:
+def get_line_numbers(filename: str, key: str, value: str) -> None:
   try:
-     with open(package_json_file_name, "r") as file:
+     with open(filename, "r") as file:
         for line_number, line in enumerate(file, 1):
           if key in line:
-            replace_json_lines(line_number, value)
+            replace_json_lines(filename, line_number, value)
   except FileNotFoundError: print_colored("get_line_numbers WAS NOT UPDATED", color="red")
 
-def replace_json_lines(line_number: int, value: str) -> None:
+def replace_json_lines(filename:str, line_number: int, value: str) -> None:
   try:
-    with open(package_json_file_name, 'r') as file:
+    with open(filename, 'r') as file:
       data = file.readlines()
 
     if "}" not in data[line_number]:
@@ -289,7 +282,7 @@ def replace_json_lines(line_number: int, value: str) -> None:
 
     data[line_number - 1] = value + "\n"
 
-    with open(package_json_file_name, 'w') as file:
+    with open(filename, 'w') as file:
       file.writelines(data)
       print_colored(f"::: package.json update was successful ::: {value}", color="blue")
 
@@ -427,14 +420,14 @@ def main() -> None:
     replace_browser_target()
     delete_ngcc()
     delete_postinstall()
-    # change_lib_package_json_package_data()
     progress_bar(ncu_loading_message, "green")
     change_nvm_and_install()
     progress_bar(loading_message, "blue")
+    change_lib_package_json_package_data()
     prettify_project()
-    start_server()
     progress_bar(loading_message, "blue")
-    git_push_changes_to_remote()
+    start_server()
+    # git_push_changes_to_remote()
 
 if __name__ == "__main__":
     main()
