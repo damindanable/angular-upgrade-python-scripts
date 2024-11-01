@@ -384,7 +384,24 @@ def ncu_package_install() -> None:
 def ncu_check_nable_packages() -> None:
   if os.path.exists(angular_path):
     print_colored(">>>> NCU Check n-able package stage:: installing ncu package.....", color="blue")
-    subprocess.run(["ncu", "-x", "/@angular.*$/", "-x", "typescript", "-x", "@apollo/client", "-x", "angular-gridster2", "-x", "apollo-angular", "-x", "devextreme", "-x", "devextreme-angular", "-x", "eslint", "-x", "ng-packagr", "-x", "rxjs", "-x", "graphql", "-x", "odata-query", "-x", "zone.js", "-x" "@n-able/msp-rmm-test-automation-lib", "-x", "@n-able/atoms", "-u"], check=True)
+    subprocess.run([
+       "ncu", "-x",
+       "/@angular.*$/", "-x",
+       "typescript", "-x",
+       "@apollo/client", "-x",
+       "angular-gridster2", "-x",
+       "apollo-angular", "-x",
+       "devextreme", "-x",
+       "devextreme-angular", "-x",
+       "eslint", "-x",
+       "ng-packagr", "-x",
+       "rxjs", "-x",
+       "graphql", "-x",
+       "odata-query", "-x",
+       "zone.js", "-x",
+       "angular-in-memory-web-api", "-x",
+       "@n-able/msp-rmm-test-automation-lib", "-x",
+       "@n-able/atoms", "-u"], check=True)
     print_colored("::: NCU Check n-able package stage :::", color="green")
   else:
       print_colored("ANGULAR JSON DOES NOT EXIST.", color="red")
