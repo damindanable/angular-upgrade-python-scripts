@@ -22,10 +22,11 @@ jenkins_search_words = {
 }
 apx_dialog_service_path = f"{folder_path}"
 apx_dialog_service_words = {
- '@n-able/neb-common/apx-confirmation-dialog': '@n-able/neb-common',
+ '@n-able/neb-common/apx-confirmation-dialog': '@n-able/neb-common/apx-dialog',
 }
 
 fields = {
+    '"angular-in-memory-web-api"': '"angular-in-memory-web-api": "^0.17.0"',
     '"@angular/animations"': '"@angular/animations": "^17.3.11"',
     '"@angular/common"':'"@angular/common": "^17.3.11"',
     '"@angular/core"':'"@angular/core": "^17.3.11"',
@@ -60,7 +61,7 @@ fields = {
     '"odata-query"':'"odata-query": "^6.7.1"',
     '"typescript"':'"typescript": "~5.4.5"',
     '"webpack-bundle-analyzer"':'"webpack-bundle-analyzer": "^4.10.0"',
-    '"zone.js"': '"webpack-bundle-analyzer": "^0.14.6"'
+    '"zone.js"': '"zone.js": "^0.14.6"'
 }
 
 start_message = """
@@ -191,8 +192,32 @@ def search_and_replace_in_files(file_path, search_word, replace_word):
             with open(file_path_url, 'w') as file:
                 file.write(updated_contents)
 
-    print_colored(f"SEARCH AND REPLACE STAGE :: File {file_path}, replacement of {search_word}, to {replace_word} updated successfully.", color="green")
+    print_colored(f"SEARCH AND REPLACE IN FILES STAGE :: File {file_path}, replacement of {search_word}, to {replace_word} updated successfully.", color="green")
 
+
+def change_lib_package_json_package_data():
+    file_path = "projects"
+    if file_path:
+      print_colored("PROJECTS FOLDER FOUND :: working on it.....", color="blue")
+      for path, dirs, files in os.walk(file_path):
+        for f in files:
+          if f == "package.json":
+            file_path_url = os.path.join(path, f)
+            print_colored(f"---------------- {file_path_url}", color="yellow")
+            with open(file_path_url, 'r') as file:
+              file_contents = file.read()
+              # updated_contents = file_contents.replace(search_word, replace_word)
+              print_colored(f"---------FOUND PACKAGE JSON------- {file_contents}", color="red")
+          # if f.endswith(".json"):
+          #     file_path_url = os.path.join(path, f)
+          #     with open(file_path_url, 'r') as file:
+          #       file_contents = file.read()
+          #       updated_contents = file_contents.replace(search_word, replace_word)
+
+          #     with open(file_path_url, 'w') as file:
+          #         file.write(updated_contents)
+    else:
+      print_colored("NO PROJECTS FOLDER FOUND EXISTING", color="blue")
 
 def change_nvm_and_install() -> None:
   if os.path.exists(angular_path):
@@ -359,8 +384,7 @@ def ncu_package_install() -> None:
 def ncu_check_nable_packages() -> None:
   if os.path.exists(angular_path):
     print_colored(">>>> NCU Check n-able package stage:: installing ncu package.....", color="blue")
-    # subprocess.run(["ncu", "-x", "/@angular.*$/", "-x", "typescript", "-u", "-t", "minor"], check=True)
-    subprocess.run(["ncu", "-x", "/@angular.*$/", "-x", "typescript", "-x", "@apollo/client", "-x", "angular-gridster2", "-x", "apollo-angular", "-x", "devextreme", "-x", "devextreme-angular", "-x", "eslint", "-x", "ng-packagr", "-x", "rxjs", "-x", "graphql", "-x", "odata-query", "-x", "@n-able/msp-rmm-test-automation-lib", "-x", "@n-able/atoms", "-u"], check=True)
+    subprocess.run(["ncu", "-x", "/@angular.*$/", "-x", "typescript", "-x", "@apollo/client", "-x", "angular-gridster2", "-x", "apollo-angular", "-x", "devextreme", "-x", "devextreme-angular", "-x", "eslint", "-x", "ng-packagr", "-x", "rxjs", "-x", "graphql", "-x", "odata-query", "-x", "zone.js", "-x" "@n-able/msp-rmm-test-automation-lib", "-x", "@n-able/atoms", "-u"], check=True)
     print_colored("::: NCU Check n-able package stage :::", color="green")
   else:
       print_colored("ANGULAR JSON DOES NOT EXIST.", color="red")
@@ -386,6 +410,7 @@ def main() -> None:
     replace_browser_target()
     delete_ngcc()
     delete_postinstall()
+    # change_lib_package_json_package_data()
     progress_bar(ncu_loading_message, "green")
     change_nvm_and_install()
     progress_bar(loading_message, "blue")
