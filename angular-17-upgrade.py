@@ -232,6 +232,11 @@ def correct_zone_js_path_in_polyfills() -> None:
                 print_colored(f"CHECKING POLYFILLS ZONE JS PATH :: STARTING..... {file_contents}", color="blue")
   print_colored("NO POLYFILLS FOUND", color="green")
 
+
+def run_dev_i18n() -> None:
+   nvm_command = 'nvm use 20; npm run dev-i18n'
+   subprocess.run(['zsh', '-i', '-c', nvm_command])
+
 def start_server() -> None:
   if os.path.exists(angular_path):
     print_colored("START SERVER STAGE :: STARTING.....", color="blue")
@@ -437,6 +442,8 @@ def main() -> None:
     delete_postinstall()
     progress_bar(loading_message, "blue")
     correct_zone_js_path_in_polyfills()
+    run_dev_i18n()
+    progress_bar(loading_message, "blue")
     progress_bar(loading_message, "green")
     change_nvm_and_install()
     progress_bar(loading_message, "blue")
