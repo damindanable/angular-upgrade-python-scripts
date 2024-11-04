@@ -15,6 +15,7 @@ package_json_file_name = f"{folder_path}/package.json"
 package_lock_delete_path = f"{folder_path}/package-lock.json"
 node_modules_delete_path = f"{folder_path}/node_modules"
 angular_path = f"{folder_path}/angular.json"
+polyfills_path = f"{folder_path}/src/polyfills.ts"
 jenkins_file_path = f"{folder_path}/Jenkinsfile"
 jenkins_search_words = {
  'quasar@release/v13': 'quasar@release/v14',
@@ -82,19 +83,19 @@ start_message = """
   """
 
 loading_message = """
-  ----------------------------------------
-  | x                                   x |
-  | x             PROCESSING            x |
-  | x                                   x |
-  ----------------------------------------
+  xx ----------------------------------------- xx
+  | x                                         x |
+  | x                PROCESSING               x |
+  | x                                         x |
+  xx ----------------------------------------- xx
   """
 
 ncu_loading_message = """
-  ----------------------------------------
-  | x                                   x |
-  | x     NCU STAGE ::PROCESSING        x |
-  | x                                   x |
-  ----------------------------------------
+  xx ----------------------------------------- xx
+  | x                                         x |
+  | x         NCU STAGE ::PROCESSING          x |
+  | x                                         x |
+  xx ----------------------------------------- xx
   """
 
 def print_colored(text, color, end='\n'):
@@ -218,6 +219,18 @@ def change_nvm_and_install() -> None:
     nvm_command = 'nvm use 20; npm install'
     subprocess.run(['zsh', '-i', '-c', nvm_command])
     print_colored(">>>> CHANGE NVM & INSTALL NEW NODE PACKAGES STAGE WAS SUCCESSFUL", color="green")
+
+def correct_zone_js_path_in_polyfills() -> None:
+  if os.path.exists(polyfills_path):
+    with open(polyfills_path, 'r') as file:
+          file_contents = file.read()
+          if 'import "zone.js/dist/zone.js"' in file_contents:
+            updated_contents = file_contents.replace('import "zone.js/dist/zone.js"', 'import "zone.js"')
+
+            with open(polyfills_path, 'w') as file:
+                file.write(updated_contents)
+                print_colored(f"CHECKING POLYFILLS ZONE JS PATH :: STARTING..... {file_contents}", color="blue")
+  print_colored("NO POLYFILLS FOUND", color="green")
 
 def start_server() -> None:
   if os.path.exists(angular_path):
@@ -415,19 +428,23 @@ def main() -> None:
     progress_bar(loading_message, "blue")
     ncu_check_packages()
     modify_nvm_rc()
+    progress_bar(loading_message, "blue")
     modify_jenkins_file()
     modify_apx_dialog()
     replace_browser_target()
+    progress_bar(loading_message, "blue")
     delete_ngcc()
     delete_postinstall()
-    progress_bar(ncu_loading_message, "green")
+    progress_bar(loading_message, "blue")
+    correct_zone_js_path_in_polyfills()
+    progress_bar(loading_message, "green")
     change_nvm_and_install()
     progress_bar(loading_message, "blue")
     change_lib_package_json_package_data()
     prettify_project()
     progress_bar(loading_message, "blue")
     start_server()
-    # git_push_changes_to_remote()
+    git_push_changes_to_remote()
 
 if __name__ == "__main__":
     main()
