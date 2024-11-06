@@ -141,10 +141,9 @@ def change_to_angular_upgrade_branch() -> None:
 
 def change_git() -> None:
     master_or_main = check_master_or_main()
-    print_colored("-----------------------------", color="green")
-    print("-------- YOUR GIT HEAD BRANCH IS IN ----------", master_or_main)
-    print(master_or_main)
-    print_colored("-----------------------------", color="green")
+    print_colored("--------------------------------------------------------------", color="green")
+    print(f"|| -------- YOUR GIT HEAD BRANCH IS IN -- {master_or_main} ---------- ||")
+    print_colored("--------------------------------------------------------------", color="green")
     subprocess.run(["git", "switch", master_or_main], check=True)
     print_colored("CHANGE GIT BRANCH STAGE :: pulling latest from master.....", color="blue")
     subprocess.run(["git", "pull"], check=True)
@@ -343,6 +342,17 @@ def replace_browser_target() -> None:
     else:
       print_colored("ANGULAR JSON DOES NOT EXIST.", color="red")
 
+
+def remove_default_project() -> None:
+  print_colored("Remove defaultProject from angular.json", color="blue")
+  if os.path.exists(angular_path):
+    with open(angular_path, "r") as f:
+        lines = f.readlines()
+    with open(angular_path, "w") as f:
+        for line in lines:
+            if '"defaultProject"' not in line:
+                f.write(line)
+
 def delete_ngcc() -> None:
     print_colored("DELETING ngcc.config.js", color="blue")
     file_path = "ngcc.config.js"
@@ -437,6 +447,7 @@ def main() -> None:
     modify_jenkins_file()
     modify_apx_dialog()
     replace_browser_target()
+    remove_default_project()
     progress_bar(loading_message, "blue")
     delete_ngcc()
     delete_postinstall()
