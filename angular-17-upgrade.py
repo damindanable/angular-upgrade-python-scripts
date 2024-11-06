@@ -241,7 +241,8 @@ def start_server() -> None:
     print_colored("START SERVER STAGE :: STARTING.....", color="blue")
     nvm_command = 'nvm use 20; npm run start'
     subprocess.run(['zsh', '-i', '-c', nvm_command])
-    print_colored("SERVER SUCCESSFULLY STARTED", color="green")
+  else:
+    print_colored("THERE WAS AN ERROR WHILE INSTALLING PACKAGES, UNABLE TO OPEN LOCAL SERVER", color="red")
 
 def check_current_git_branch() -> str:
     output = subprocess.run(["git", "branch", "--show-current"], check=True, capture_output=True, text=True)
