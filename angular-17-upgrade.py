@@ -433,9 +433,9 @@ def ncu_check_packages() -> None:
 
 def main() -> None:
     progress_bar(start_message, "green")
-    add_to_git_ignore()
     git_prune()
     change_git()
+    add_to_git_ignore()
     remove_old_files()
     progress_bar(loading_message, "blue")
     cleanup_package_json()
@@ -462,7 +462,7 @@ def main() -> None:
     prettify_project()
     progress_bar(loading_message, "blue")
     start_server()
-    git_push_changes_to_remote()
+    # git_push_changes_to_remote()
 
 if __name__ == "__main__":
     main()
