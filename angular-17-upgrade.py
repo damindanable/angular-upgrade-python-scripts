@@ -422,6 +422,7 @@ def ncu_check_nable_packages() -> None:
        "odata-query", "-x",
        "zone.js", "-x",
        "angular-in-memory-web-api", "-x",
+       "angular-oauth2-oidc", "-x",
        "@n-able/msp-rmm-test-automation-lib", "-x",
        "@n-able/atoms", "-u"], check=True)
     print_colored("::: NCU Check n-able package stage :::", color="green")
@@ -456,7 +457,6 @@ def main() -> None:
     correct_zone_js_path_in_polyfills()
     run_dev_i18n()
     progress_bar(loading_message, "blue")
-    progress_bar(loading_message, "green")
     change_nvm_and_install()
     progress_bar(loading_message, "blue")
     change_lib_package_json_package_data()
