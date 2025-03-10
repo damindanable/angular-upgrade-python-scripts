@@ -40,6 +40,8 @@ fields = {
     '"@angular-devkit/build-angular"':'"@angular-devkit/build-angular": "^17.3.8"',
     '"@angular-devkit/core"':'"@angular-devkit/core": "^17.3.8"',
     '"@angular-eslint/builder"':'"@angular-eslint/builder": "^17.5.2"',
+    '"@n-able/xliff-tools"':'"@n-able/xliff-tools": "^11.0.0"',
+    '"@ngneat/spectator"':'"@ngneat/spectator": "^17.1.0"',
     '"@angular-eslint/eslint-plugin"':'"@angular-eslint/eslint-plugin": "^17.5.2"',
     '"@angular-eslint/eslint-plugin-template"':'"@angular-eslint/eslint-plugin-template": "^17.5.2"',
     '"@angular-eslint/schematics"':'"@angular-eslint/schematics": "^17.5.2"',
