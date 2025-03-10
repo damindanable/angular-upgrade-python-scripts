@@ -426,6 +426,8 @@ def ncu_check_nable_packages() -> None:
        "angular-in-memory-web-api", "-x",
        "angular-oauth2-oidc", "-x",
        "@n-able/msp-rmm-test-automation-lib", "-x",
+       "@n-able/xliff-tools", "-x",
+       "@ngneat/spectator", "-x",
        "@n-able/atoms", "-u"], check=True)
     print_colored("::: NCU Check n-able package stage :::", color="green")
   else:
