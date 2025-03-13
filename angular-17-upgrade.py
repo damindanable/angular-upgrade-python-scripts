@@ -41,6 +41,7 @@ fields = {
     '"@angular-devkit/core"':'"@angular-devkit/core": "^17.3.8"',
     '"@angular-eslint/builder"':'"@angular-eslint/builder": "^17.5.2"',
     '"@n-able/xliff-tools"':'"@n-able/xliff-tools": "^11.0.0"',
+    '"@n-able/qsr-devkit': '"@n-able/qsr-devkit": "^5.0.0"',
     '"@ngneat/spectator"':'"@ngneat/spectator": "^17.1.0"',
     '"@angular-eslint/eslint-plugin"':'"@angular-eslint/eslint-plugin": "^17.5.2"',
     '"@angular-eslint/eslint-plugin-template"':'"@angular-eslint/eslint-plugin-template": "^17.5.2"',
@@ -411,6 +412,7 @@ def ncu_check_nable_packages() -> None:
     subprocess.run([
        "ncu", "-x",
        "/@angular.*$/", "-x",
+       "/@angular-.*$/", "-x",
        "typescript", "-x",
        "@apollo/client", "-x",
        "angular-gridster2", "-x",
@@ -428,6 +430,7 @@ def ncu_check_nable_packages() -> None:
        "@n-able/msp-rmm-test-automation-lib", "-x",
        "@n-able/xliff-tools", "-x",
        "@ngneat/spectator", "-x",
+       "@n-able/qsr-devkit", "-x",
        "@n-able/atoms", "-u"], check=True)
     print_colored("::: NCU Check n-able package stage :::", color="green")
   else:
