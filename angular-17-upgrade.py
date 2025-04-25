@@ -4,7 +4,6 @@ import os
 import shutil
 import sys
 from time import sleep
-import sys
 import random
 
 folder_path = "."
@@ -60,8 +59,14 @@ fields = {
     '"devextreme"':'"devextreme": "23.2.4"',
     '"devextreme-angular"':'"devextreme-angular": "23.2.4"',
     '"rxjs"':'"rxjs": "^7.8.1"',
+    '"tailwindcss"':'"tailwindcss": "^3.3.4"',
+    '"@n-able/qsr-api-client"':'"@n-able/qsr-api-client": "^20.4.0"',
+    '"@n-able/apx-product-bar"':'"@n-able/apx-product-bar": "^17.0.1"',
     '"graphql"': '"graphql": "^16.9.0"',
     '"eslint"':'"eslint": "^8.57.0"',
+    '"@n-able/es-lint-rules"':'"@n-able/es-lint-rules": "^4.0.0"',
+    '"@n-able/apx-nav-menu"':'"@n-able/apx-nav-menu": "^14.0.1"',
+    '"@n-able/qsr-sso"':'"@n-able/qsr-sso": "^7.0.0"',
     '"odata-query"':'"odata-query": "^6.7.1"',
     '"typescript"':'"typescript": "~5.4.5"',
     '"webpack-bundle-analyzer"':'"webpack-bundle-analyzer": "^4.10.0"',
@@ -425,11 +430,17 @@ def ncu_check_nable_packages() -> None:
        "graphql", "-x",
        "odata-query", "-x",
        "zone.js", "-x",
+       "tailwindcss", "-x",
        "angular-in-memory-web-api", "-x",
        "angular-oauth2-oidc", "-x",
+       "@n-able/qsr-api-client", "-x",
        "@n-able/msp-rmm-test-automation-lib", "-x",
        "@n-able/xliff-tools", "-x",
        "@ngneat/spectator", "-x",
+       "@n-able/es-lint-rules", "-x",
+       "@n-able/apx-nav-menu", "-x",
+       "@n-able/apx-product-bar", "-x",
+       "@n-able/qsr-sso", "-x",
        "@n-able/qsr-devkit", "-x",
        "@n-able/atoms", "-u"], check=True)
     print_colored("::: NCU Check n-able package stage :::", color="green")
