@@ -31,6 +31,10 @@ apx_dialog_service_words = {
  '@n-able/neb-common/apx-confirmation-dialog': '@n-able/neb-common/apx-dialog',
 }
 
+apx_common_import = {
+ 'import { ApxCommonModule } from "@n-able/apex-ui";': 'import { ApxCommonModule } from "@n-able/apx-common";',
+}
+
 fields = {
     '"angular-in-memory-web-api"': '"angular-in-memory-web-api": "^0.19.0"',
     '"@angular/animations"': '"@angular/animations": "^19.2.11"',
@@ -80,7 +84,11 @@ fields = {
     '"typescript"':'"typescript": "~5.5.4"',
     '"webpack-bundle-analyzer"':'"webpack-bundle-analyzer": "^4.10.0"',
     '"zone.js"': '"zone.js": "^0.15.0"',
+    '"@storybook/addons"': '"@storybook/addons": "7.6.20"',
+    '"@storybook/addon-a11y"': '"@storybook/addon-a11y": "8.6.12"',
     '"@storybook/addon-actions"': '"@storybook/addon-actions": "8.6.12"',
+    '"@storybook/addon-controls"': '"@storybook/addon-controls": "8.6.12"',
+    '"@storybook/addon-controls"': '"@storybook/addon-controls": "8.6.12"',
     '"@storybook/addon-docs"': '"@storybook/addon-docs": "8.6.12"',
     '"@storybook/addon-essentials"': '"@storybook/addon-essentials": "8.6.12"',
     '"@storybook/addon-interactions"': '"@storybook/addon-interactions": "8.6.12"',
@@ -93,9 +101,12 @@ fields = {
     '"@storybook/test-runner"': '"@storybook/test-runner": "^0.22.0"',
     '"@storybook/theming"': '"@storybook/theming": "8.6.12"',
     '"@storybook/types"': '"@storybook/types": "8.6.12"',
+    '"@storybook/builder-webpack5"': '"@storybook/builder-webpack5": "8.6.12"',
     '"storybook"': '"storybook": "8.6.12"',
     '"storybook-addon-tag-badges"': '"storybook-addon-tag-badges": "1.4.0"',
-    '"storybook-dark-mode"': '"storybook-dark-mode": "4.0.2"'
+    '"storybook-dark-mode"': '"storybook-dark-mode": "4.0.2"',
+    '"@etchteam/storybook-addon-status"': '"@etchteam/storybook-addon-status": "5.0.0"',
+    '"eslint-plugin-storybook"': '"eslint-plugin-storybook": "0.12.0"',
 }
 
 start_message = """
@@ -263,31 +274,14 @@ def change_lib_package_json_package_data() -> None:
       print_colored("NO PROJECTS FOLDER FOUND EXISTING", color="blue")
 
 
-def remove_apx_common_imports(file_path: str) -> None:
-    apx_common_import = 'import { ApxCommonModule } from "@n-able/apx-common";'
-    apx_common_module = 'ApxCommonModule,'
-    print_colored(f"..... PATH ..... {file_path}", color="green")
-    try:
-      with open(file_path, "r") as ReadFile:
-        file_contents = ReadFile.read()
-        # if 'import "zone.js/dist/zone.js"' in file_contents:
-          # print_colored(f"CHECKING APX COMMON IMPORTS :: STARTING..... {line}", color="blue")
-        if apx_common_import in file_contents:
-            print_colored(f"CHECKING APX COMMON IMPORTS apx_common_import", color="red")
-            updated_contents = file_contents.replace(apx_common_import, '')
-
-            with open(file_path, "w") as WriteFile:
-                  WriteFile.write(updated_contents)
-
-        if apx_common_module in file_contents:
-            print_colored(f"CHECKING APX COMMON IMPORTS apx_common_module", color="red")
-            apx_common_module_updated_contents = file_contents.replace(apx_common_module, '')
-
-            with open(file_path, "w") as WriteFile:
-                  WriteFile.write(apx_common_module_updated_contents)
+def add_apx_common_imports_back() -> None:
+  try:
+    if os.path.exists(package_json_file_name):
+      for key, value in apx_common_import.items():
+       search_and_replace_in_files(folder_path, key, value)
 
 
-    except FileNotFoundError: print_colored(f"SEARCH AND REPLACE STAGE '{file_path}' NOT FOUND, ABORTING...", color="red")
+  except FileNotFoundError: print_colored(f"APX COMMON IMPORT BACK WAS NOT SUCCESSFUL", color="red")
 
 
 
@@ -392,7 +386,9 @@ def prettify_project() -> None:
     print_colored("FORMAT FILES:: Prettify is running.....", color="blue")
     try:
       subprocess.run(["npx", "prettier", ".", "--write"], check=True)
-    except FileNotFoundError: print_colored("prettify_project WAS NOT SUCCESSFUL", color="red")
+    except subprocess.CalledProcessError as error:
+      output = error.output
+      print_colored(f"|||||| xxxxx PRETTIFY STEP WAS NOT SUCCESSFUL ERROR IN ONE OR MORE FILES xxxxxxx ||||||| {output}", color="red")
 
 
 def remove_package_json() -> None:
@@ -405,6 +401,13 @@ def remove_package_json() -> None:
 
 def remove_node_modules() -> None:
   print_colored("DELETE NODE MODULES :: deleting node_modules.....", color="blue")
+  sys.stdout.write('\r')
+  for i in range(21):
+      sys.stdout.write('\r')
+      sys.stdout.write("[%-20s] %d%%" % ('='*i, 5*i))
+      sys.stdout.flush()
+      sleep(0.125)
+  sys.stdout.write('\r')
   if os.path.exists(node_modules_delete_path):
     shutil.rmtree(node_modules_delete_path)
     print_colored(f">>> The directory {node_modules_delete_path} has been deleted.", color="yellow")
@@ -436,17 +439,13 @@ def replace_angular_19_tags() -> None:
    for path, dirs, files in os.walk(folder_path):
       for file in files:
         file_path_url = os.path.join(path, file)
-        standalone_text = 'standalone: false,\n'
-        if file.endswith("app.module.ts"):
-          remove_apx_common_imports(file_path_url)
-        if file.endswith(".directive.ts"):
+        standalone_text = 'standalone: false,'
+        if file.endswith(".component.ts") or file.endswith(".directive.ts") or file.endswith(".pipe.ts"):
+          print_colored(f"..... PATH ..... {file_path_url}", color="green")
           add_standalone_in_to_directives(file_path_url, standalone_text)
-        if file.endswith(".component.ts"):
           add_standalone_in_component(file_path_url, standalone_text)
-        if file.endswith(".pipe.ts"):
           add_standalone_in_to_pipes(file_path_url, standalone_text)
-        if file.endswith(".spec.ts"):
-           add_standalone_in_to_spec_component(file_path_url, standalone_text)
+
 
 def add_standalone_in_to_directives(path: str, standalone_text: str) -> None:
   try:
@@ -457,42 +456,12 @@ def add_standalone_in_to_directives(path: str, standalone_text: str) -> None:
       search_string_first_part_escaped = str(re.escape(search_string_first_part))
       search_string_end_part_escaped = str(re.escape(search_string_end_part))
       match_strings = re.findall(f"{search_string_first_part_escaped}(.*?){search_string_end_part_escaped}", file_contents, re.S)
-      print_colored(f"------- path ------- {path}", color="green")
-      print_colored(f"------- match_strings ------- {match_strings}", color="blue")
-
-
       for string in match_strings:
-          print_colored(f"<< string >>> {string} ", color="red")
-          input_string = re.findall('selector: "([^"]*)"', string)
-          print_colored(f"<< input_string >>> {input_string} ", color="blue")
-          converted_brackets = str(input_string).replace("['", "").replace("']", "")
-          print_colored(f"<< new_lines_convert_to_string >>> {converted_brackets} ", color="green")
-          converted_string = str(converted_brackets).replace("'", '').replace("'", "")
-          print_colored(f"<< converted_string >>> {converted_string} ", color="green")
-
-          selector = 'selector: "' + converted_string + '"'
-
-          print_colored(f"<<================= selector =================>>> {selector} ", color="blue")
-
-          # selector_end_part = "])"
-          # selector_first_part_escaped = str(re.escape(selector_first_part))
-          # selector_end_part_escaped = str(re.escape(selector_end_part))
-          # matched_selector_string = re.findall(f"{selector_first_part_escaped}(.*?){selector_end_part_escaped}", file_contents, re.S)
-          # print_colored(f"<< matched_selector_string >>> {selector_first_part} ", color="blue")
-          # matched_selector_string = re.findall(selector, file_contents, re.S)
-          # print_colored(f"<< matched_selector_string >>> {matched_selector_string} ", color="blue")
-
-
-          line_number = common_get_line_number(selector, path)
-          print_colored(f"<< line_number >>> {line_number}", color="blue")
-          with open(path, 'r') as ReadFileData:
-            if line_number is not None:
-              data = ReadFileData.readlines()
-              data.insert(line_number, standalone_text)
-
-              with open(path, 'w') as FileWriteData:
-                FileWriteData.writelines(data)
-
+          selector_string = re.findall('selector: "([^"]*)"', string)
+          if selector_string:
+            replace_selector_with_standalone(selector_string, path, standalone_text)
+          else:
+             print_colored(f"NO SELECTOR FOUND IN DIRECTIVE {path}", color="red")
 
   except FileNotFoundError: print_colored("replace_create_spy_obj WAS NOT SUCCESSFUL", color="red")
 
@@ -507,18 +476,12 @@ def add_standalone_in_to_pipes(path: str, standalone_text: str) -> None:
       match_strings = re.findall(f"{search_string_first_part_escaped}(.*?){search_string_end_part_escaped}", file_contents, re.S)
 
       for string in match_strings:
-          print_colored(f"<< string >>> {string} ", color="red")
           one_line_string = f"{search_string_first_part}{string}{search_string_end_part}"
-          print_colored(f"------- match_strings ------- {one_line_string}", color="green")
-
           line_numbers = len(one_line_string.split("\n"))
 
           selector_string = re.findall('name: "([^"]*)"', string)
           if line_numbers == 1:
-            print_colored(f"------- lines lines lines lines lines lines lines------- {line_numbers}", color="green")
             one_line_string_replacement = f"{search_string_first_part}{string}, {standalone_text}{search_string_end_part}"
-            print_colored(f"------- lines lines lines lines lines lines lines------- {one_line_string_replacement}", color="green")
-
             with open(path, 'r') as file:
                 file_contents = file.read()
                 updated_on_line_pipe_contents = file_contents.replace(one_line_string, one_line_string_replacement)
@@ -527,17 +490,12 @@ def add_standalone_in_to_pipes(path: str, standalone_text: str) -> None:
                 file.write(updated_on_line_pipe_contents)
 
           elif selector_string:
-              print_colored(f"<< input_string inside if statement >>> {selector_string} ", color="blue")
               selector_input_converted_brackets = str(selector_string).replace("['", "").replace("']", "")
-
-              print_colored(f"<< new_lines_convert_to_string >>> {selector_input_converted_brackets} ", color="green")
               converted_string = str(selector_input_converted_brackets).replace("'", '').replace("'", "")
-              print_colored(f"<< converted_string >>> {converted_string} ", color="green")
-
               selector = 'name: "' + converted_string + '"'
 
               line_number = common_get_line_number(selector, path)
-              print_colored(f"<< line_number >>> {line_number}", color="blue")
+
               with open(path, 'r') as ReadFileData:
                 if line_number is not None:
                   data = ReadFileData.readlines()
@@ -557,136 +515,54 @@ def add_standalone_in_component(path: str, standalone_text: str) -> None:
       search_string_first_part_escaped = str(re.escape(search_string_first_part))
       search_string_end_part_escaped = str(re.escape(search_string_end_part))
       match_strings = re.findall(f"{search_string_first_part_escaped}(.*?){search_string_end_part_escaped}", file_contents, re.S)
-      # print_colored(f"------- path ------- {path}", color="green")
-      # print_colored(f"------- match_strings ------- {match_strings}", color="blue")
-
 
       for string in match_strings:
-          print_colored(f"<< string >>> {string} ", color="red")
           selector_string = re.findall('selector: "([^"]*)"', string)
           template_string = re.findall('templateUrl: "([^"]*)"', string)
           if selector_string:
-            print_colored(f"<< input_string inside if statement >>> {selector_string} ", color="blue")
-            selector_input_converted_brackets = str(selector_string).replace("['", "").replace("']", "")
+            replace_selector_with_standalone(selector_string, path, standalone_text)
 
-            print_colored(f"<< new_lines_convert_to_string >>> {selector_input_converted_brackets} ", color="green")
-            converted_string = str(selector_input_converted_brackets).replace("'", '').replace("'", "")
-            print_colored(f"<< converted_string >>> {converted_string} ", color="green")
-
-            selector = 'selector: "' + converted_string + '"'
-            # selector_end_part = "])"
-            # selector_first_part_escaped = str(re.escape(selector_first_part))
-            # selector_end_part_escaped = str(re.escape(selector_end_part))
-            # matched_selector_string = re.findall(f"{selector_first_part_escaped}(.*?){selector_end_part_escaped}", file_contents, re.S)
-            # print_colored(f"<< matched_selector_string >>> {selector_first_part} ", color="blue")
-            # matched_selector_string = re.findall(selector, file_contents, re.S)
-            # print_colored(f"<< matched_selector_string >>> {matched_selector_string} ", color="blue")
-
-
-            line_number = common_get_line_number(selector, path)
-            print_colored(f"<< line_number >>> {line_number}", color="blue")
-            with open(path, 'r') as ReadFileData:
-              if line_number is not None:
-                data = ReadFileData.readlines()
-                data.insert(line_number, standalone_text)
-
-                with open(path, 'w') as FileWriteData:
-                  FileWriteData.writelines(data)
           elif template_string:
-            print_colored(f"<<--------- template_string inside else if ------- >>> {template_string} ", color="blue")
+            print_colored(f"NO SELECTOR FOUND IN COMPONENT {path}", color="red")
             template_string_converted_brackets = str(template_string).replace("['", "").replace("']", "")
-            print_colored(f"<< new_lines_convert_to_string >>> {template_string_converted_brackets} ", color="green")
-            converted_string = str(template_string_converted_brackets).replace("'", '').replace("'", "")
-            print_colored(f"<< converted_string >>> {converted_string} ", color="blue")
-
-            selector = 'templateUrl: "' + converted_string + '"'
-            line_number = common_get_line_number(selector, path)
-            print_colored(f"<< selector >>> {selector} ", color="red")
+            template_converted_string = str(template_string_converted_brackets).replace("'", '').replace("'", "")
+            template_selector = 'templateUrl: "' + template_converted_string + '",'
+            template_replace_word = template_selector + " " + standalone_text
             with open(path, 'r') as ReadFileData:
-              if line_number is not None:
-                data = ReadFileData.readlines()
-                data.insert(line_number, standalone_text)
+                template_data = ReadFileData.read()
+                template_updated_contents = template_data.replace(template_selector, template_replace_word)
 
                 with open(path, 'w') as FileWriteData:
-                  FileWriteData.writelines(data)
-
-  except FileNotFoundError: print_colored("replace_create_spy_obj WAS NOT SUCCESSFUL", color="red")
-
-def add_standalone_in_to_spec_component(path: str, standalone_text: str) -> None:
-  try:
-    with open(path, "r") as file:
-      file_contents = file.read()
-      search_string_first_part = "@Component({"
-      search_string_end_part = "})"
-      search_string_first_part_escaped = str(re.escape(search_string_first_part))
-      search_string_end_part_escaped = str(re.escape(search_string_end_part))
-      match_strings = re.findall(f"{search_string_first_part_escaped}(.*?){search_string_end_part_escaped}", file_contents, re.S)
-      print_colored(f"------- path ------- {path}", color="green")
-      print_colored(f"------- match_strings ------- {match_strings}", color="blue")
-
-
-      for string in match_strings:
-          print_colored(f"<< string >>> {string} ", color="red")
-          input_string = re.findall('selector: "([^"]*)"', string)
-          print_colored(f"<< input_string >>> {input_string} ", color="blue")
-          converted_brackets = str(input_string).replace("['", "").replace("']", "")
-          print_colored(f"<< new_lines_convert_to_string >>> {converted_brackets} ", color="green")
-          converted_string = str(converted_brackets).replace("'", '').replace("'", "")
-          print_colored(f"<< converted_string >>> {converted_string} ", color="green")
-
-          selector = 'selector: "' + converted_string + '"'
-          # selector_end_part = "])"
-          # selector_first_part_escaped = str(re.escape(selector_first_part))
-          # selector_end_part_escaped = str(re.escape(selector_end_part))
-          # matched_selector_string = re.findall(f"{selector_first_part_escaped}(.*?){selector_end_part_escaped}", file_contents, re.S)
-          # print_colored(f"<< matched_selector_string >>> {selector_first_part} ", color="blue")
-          # matched_selector_string = re.findall(selector, file_contents, re.S)
-          # print_colored(f"<< matched_selector_string >>> {matched_selector_string} ", color="blue")
-
-
-          line_number = common_get_line_number(selector, path)
-          print_colored(f"<< line_number >>> {line_number}", color="blue")
-          with open(path, 'r') as ReadFileData:
-            if line_number is not None:
-              data = ReadFileData.readlines()
-              data.insert(line_number, standalone_text)
-
-              with open(path, 'w') as FileWriteData:
-                FileWriteData.writelines(data)
-
+                  FileWriteData.writelines(template_updated_contents)
 
   except FileNotFoundError: print_colored("replace_create_spy_obj WAS NOT SUCCESSFUL", color="red")
 
 
-def replace_standalone_in_spec_files(file_path, line_number, standalone_text):
-  print_colored(f"~~~~~~~~~~~~~~~~ DONE ~~~~~~~~~~~~~~~~ {file_path}, {line_number}, {standalone_text}", color="green")
-  with open(file_path, 'r') as ReadFileData:
-    data = ReadFileData.readlines()
-    # print_colored(f"~~~~~~~~~~~~~~~~ data ~~~~~~~~~~~~~~~~ {data}", color="green")
+def replace_selector_with_standalone(selector_string: str, path: str, standalone_text: str) -> None:
+  selector_input_converted_brackets = str(selector_string).replace("['", "").replace("']", "")
+  converted_string = str(selector_input_converted_brackets).replace("'", '').replace("'", "")
+  selector = 'selector: "' + converted_string + '",'
+  replace_word = selector + " " + standalone_text
+  with open(path, 'r') as ReadFileData:
+    data = ReadFileData.read()
+    updated_contents = data.replace(selector, replace_word)
 
-    # data.insert(line_number, standalone_text)
-  # with open(file_path, 'w') as FileWriteData:
-  #   FileWriteData.write(data)
+  with open(path, 'w') as FileWriteData:
+    FileWriteData.writelines(updated_contents)
 
 def add_standalone_in_to_component(path: str, line_number: int, standalone_text: str) -> None:
   try:
 
     with open(path, "r") as file:
       file_contents = file.read()
-
       search_string_first_part = "@Component({"
       search_string_end_part = "})"
       search_string_first_part_escaped = str(re.escape(search_string_first_part))
       search_string_end_part_escaped = str(re.escape(search_string_end_part))
       match_strings = re.findall(f"{search_string_first_part_escaped}(.*?){search_string_end_part_escaped}", file_contents, re.S)
 
-      print_colored(f"------- component__obj_texts ------- {match_strings}", color="blue")
-
       for string in match_strings:
-          print_colored(f"<< string >>> {string}", color="red")
           if "standalone" not in string:
-            print_colored(f"<< string not in >>> {string}", color="green")
-
             with open(path, 'r') as ReadFileData:
               data = ReadFileData.readlines()
               data.insert(line_number, standalone_text)
@@ -695,40 +571,7 @@ def add_standalone_in_to_component(path: str, line_number: int, standalone_text:
               FileWriteData.writelines(data)
 
 
-
   except FileNotFoundError: print_colored("replace_create_spy_obj WAS NOT SUCCESSFUL", color="red")
-
-
-# def add_standalone_in_to_directives(path: str, line_number: int, standalone_text: str) -> None:
-#   try:
-
-#     with open(path, "r") as file:
-#       file_contents = file.read()
-
-#       search_string_first_part = "@Directive({"
-#       search_string_end_part = "})"
-#       search_string_first_part_escaped = str(re.escape(search_string_first_part))
-#       search_string_end_part_escaped = str(re.escape(search_string_end_part))
-#       match_strings = re.findall(f"{search_string_first_part_escaped}(.*?){search_string_end_part_escaped}", file_contents, re.S)
-
-#       print_colored(f"------- component__obj_texts ------- {match_strings}", color="blue")
-#       print_colored(f"------- path ------- {path}", color="red")
-
-#       print_colored(f"<< line_number >>> {line_number}", color="blue")
-
-#       for string in match_strings:
-#           print_colored(f"<< string >>> {string}", color="red")
-#           if "standalone" not in string:
-#             print_colored(f"<< string not in >>> {string}", color="green")
-
-#             with open(path, 'r') as ReadFileData:
-#               data = ReadFileData.readlines()
-#               data.insert(line_number, standalone_text)
-
-#             with open(path, 'w') as FileWriteData:
-#               FileWriteData.writelines(data)
-
-#   except FileNotFoundError: print_colored("replace_create_spy_obj WAS NOT SUCCESSFUL", color="red")
 
 
 def common_get_line_number(text: str, path: str) -> int:
@@ -736,14 +579,12 @@ def common_get_line_number(text: str, path: str) -> int:
 
     with open(path, "r") as file:
       for line_number, line_item in enumerate(file):
-        # print_colored(f"<<<<<<<<< common_get_line_number path >>>>>>>>>>>>>>>> {line_number}, {line_item}, {text}", color="red")
         if text in line_item:
-          # print_colored(f"COMMON GET LINE NUMBER:: {line_number}, {line_item}, {text}", color="blue")
           return line_number + 1
   except FileNotFoundError: print_colored("--- exception in common_get_line_number ---", color="red")
 
 def remove_default_project() -> None:
-  print_colored("Remove defaultProject from angular.json", color="blue")
+  print_colored("REMOVE defaultProject from angular.json", color="blue")
   if os.path.exists(angular_path):
     with open(angular_path, "r") as f:
         lines = f.readlines()
@@ -753,7 +594,7 @@ def remove_default_project() -> None:
                 f.write(line)
 
 def delete_ngcc() -> None:
-    print_colored("DELETING ngcc.config.js", color="blue")
+    print_colored("DELETE ngcc.config.js", color="blue")
     file_path = "ngcc.config.js"
     try:
       os.remove(file_path)
@@ -763,7 +604,7 @@ def delete_ngcc() -> None:
 def cleanup_package_json() -> None:
   print_colored("CLEAN UP PACKAGE JSON STAGE", color="blue")
   try:
-    print_colored("cleaning up.....", color="yellow")
+    print_colored("....... CLEANING UP .....", color="yellow")
     search_and_replace(package_json_file_name, '"node": ">=16"', '"node": ">=20"')
     search_and_replace(package_json_file_name, '"npm": ">=8"', '"npm": ">=10"')
     search_and_replace(package_json_file_name, 'husky install', 'husky')
@@ -790,9 +631,8 @@ def add_storybook_if_not_available() -> None:
             match_strings = re.findall(f"{search_string_story_book_first_part_escaped}(.*?){search_string_story_book_end_part_escaped}", file_contents, re.S)
             converted_brackets = str(match_strings).replace("['", "").replace("']", "")
             converted_string = str(converted_brackets).replace("'", '').replace("'", "")
-            print_colored(f"finding storybook available in string {converted_string} ", color="green")
             if "8." not in converted_string:
-                print_colored(f"ALERT NO STORYBOOK FOUND ADDING STORYBOOK TO PACKAGE.JSON {converted_string} ", color="red")
+                print_colored(f"NO STORYBOOK FOUND ADDING STORYBOOK TO PACKAGE.JSON {converted_string} ", color="red")
                 standalone_text = '"storybook": "8.6.12",\n'
                 with open(package_json_file_name, 'r') as ReadFileData:
                   data = ReadFileData.readlines()
@@ -811,7 +651,7 @@ def delete_postinstall() -> None:
       for line_number, line_item in enumerate(file, 1):
         if "ngcc --" in line_item:
           replace_ngcc(line_number - 1)
-  except FileNotFoundError: print_colored("prettify_project WAS NOT SUCCESSFUL", color="red")
+  except FileNotFoundError: print_colored("DELETE POST INSTALL STEP WAS NOT SUCCESSFUL", color="red")
 
 def replace_ngcc(line_number: int) -> None:
   try:
@@ -823,7 +663,7 @@ def replace_ngcc(line_number: int) -> None:
                   if number != line_number:
                       file.write(line)
     print_colored("::: package.json ngcc remove update was successful :::", color="green")
-  except FileNotFoundError: print_colored("prettify_project WAS NOT SUCCESSFUL", color="red")
+  except FileNotFoundError: print_colored("REPLACE NGCC STEP WAS NOT SUCCESSFUL", color="red")
 
 def ncu_package_install() -> None:
   if os.path.exists(angular_path):
@@ -875,6 +715,8 @@ def ncu_check_nable_packages() -> None:
       "@n-able/apx-product-bar", "-x",
       "@n-able/qsr-sso", "-x",
       "@n-able/qsr-devkit", "-x",
+      "eslint-plugin-storybook", "-x",
+      "@etchteam/storybook-addon-status", "-x",
       "@n-able/atoms", "-u"], check=True)
     print_colored("::: NCU Check n-able package stage :::", color="green")
   else:
@@ -885,12 +727,13 @@ def ncu_check_packages() -> None:
     ncu_check_nable_packages()
 
 def main() -> None:
-    # progress_bar(start_message, "green")
+    progress_bar(start_message, "green")
     # git_prune()
     # change_git()
-    # install_ng_19()
-    # add_to_git_ignore()
+    install_ng_19()
+    add_to_git_ignore()
     remove_old_files()
+    add_storybook_if_not_available()
     progress_bar(loading_message, "blue")
     cleanup_package_json()
     update_angular_package_json()
@@ -899,7 +742,6 @@ def main() -> None:
     modify_nvm_rc()
     progress_bar(loading_message, "blue")
     modify_jenkins_file()
-    add_storybook_if_not_available()
     modify_apx_dialog()
     replace_browser_target()
     remove_default_project()
@@ -913,13 +755,15 @@ def main() -> None:
     run_dev_i18n()
     progress_bar(loading_message, "blue")
     change_nvm_and_install()
+    progress_bar(loading_message, "blue")
     install_apex_ui_package()
     progress_bar(loading_message, "blue")
     change_lib_package_json_package_data()
+    add_apx_common_imports_back()
     prettify_project()
     progress_bar(loading_message, "blue")
-    # start_server()
-    # git_push_changes_to_remote()
+    start_server()
+    git_push_changes_to_remote()
 
 if __name__ == "__main__":
     main()
